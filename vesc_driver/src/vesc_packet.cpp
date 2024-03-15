@@ -340,7 +340,7 @@ double VescPacketValues::readBuffer(const uint8_t map_id, const uint8_t size) co
 /**
  * @brief Constructor
  **/
-VescPacketRequestValues::VescPacketRequestValues() : VescPacket("RequestFWVersion", 1, COMM_GET_VALUES)
+VescPacketRequestValues::VescPacketRequestValues() : VescPacket("GetValues", 1, COMM_GET_VALUES)
 {
   VescFrame::CRC crc_calc;
   crc_calc.process_bytes(&(*payload_end_.first), boost::distance(payload_end_));
