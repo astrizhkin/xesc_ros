@@ -54,6 +54,66 @@ namespace vesc_driver {
         ROS_ERROR("%s", error.c_str());
     }
 
+    uint16_t VescDriver::convertVescFaultCode(uint8_t vescFaultCode) {
+        switch (vescFaultCode) {
+	        case FAULT_CODE_NONE:
+                return 0;
+            case FAULT_CODE_OVER_VOLTAGE:
+                return xesc_msgs::XescState::XESC_FAULT_OVERVOLTAGE;
+            case FAULT_CODE_UNDER_VOLTAGE:
+                return xesc_msgs::XescState::XESC_FAULT_UNDERVOLTAGE;
+            case FAULT_CODE_DRV:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_ABS_OVER_CURRENT:
+                return xesc_msgs::XescState::XESC_FAULT_OVERCURRENT;
+            case FAULT_CODE_OVER_TEMP_FET:
+                return xesc_msgs::XescState::XESC_FAULT_OVERTEMP_PCB;
+            case FAULT_CODE_OVER_TEMP_MOTOR:
+                return xesc_msgs::XescState::XESC_FAULT_OVERTEMP_MOTOR;
+            case FAULT_CODE_GATE_DRIVER_OVER_VOLTAGE:
+                return xesc_msgs::XescState::XESC_FAULT_OVERVOLTAGE;
+            case FAULT_CODE_GATE_DRIVER_UNDER_VOLTAGE:
+                return xesc_msgs::XescState::XESC_FAULT_UNDERVOLTAGE;
+            case FAULT_CODE_MCU_UNDER_VOLTAGE:
+                return xesc_msgs::XescState::XESC_FAULT_UNDERVOLTAGE;
+            case FAULT_CODE_BOOTING_FROM_WATCHDOG_RESET:
+                return xesc_msgs::XescState::XESC_FAULT_WATCHDOG;
+            case FAULT_CODE_ENCODER_SPI:
+                return xesc_msgs::XescState::XESC_FAULT_INVALID_HALL;
+            case FAULT_CODE_ENCODER_SINCOS_BELOW_MIN_AMPLITUDE:
+                return xesc_msgs::XescState::XESC_FAULT_INVALID_HALL;
+            case FAULT_CODE_ENCODER_SINCOS_ABOVE_MAX_AMPLITUDE:
+                return xesc_msgs::XescState::XESC_FAULT_INVALID_HALL;
+            case FAULT_CODE_FLASH_CORRUPTION:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_1:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_2:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_3:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_UNBALANCED_CURRENTS:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_BRK:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_RESOLVER_LOT:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_RESOLVER_DOS:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_RESOLVER_LOS:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_FLASH_CORRUPTION_APP_CFG:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_FLASH_CORRUPTION_MC_CFG:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+            case FAULT_CODE_ENCODER_NO_MAGNET:
+                return xesc_msgs::XescState::XESC_FAULT_INVALID_HALL;
+            case FAULT_CODE_ENCODER_MAGNET_TOO_STRONG:
+                return xesc_msgs::XescState::XESC_FAULT_INVALID_HALL;
+            default:
+                return xesc_msgs::XescState::XESC_FAULT_UNINITIALIZED;
+        }
+    }
 
     void VescDriver::stop() {
         vesc_.stop();
@@ -72,7 +132,7 @@ namespace vesc_driver {
         state_msg.state.current_input = vesc_status.current_input;
         state_msg.state.duty_cycle = vesc_status.duty_cycle;
         state_msg.state.tacho = vesc_status.tacho;
-        state_msg.state.fault_code = vesc_status.fault_code;
+        state_msg.state.fault_code = convertVescFaultCode(vesc_status.fault_code);
         state_msg.state.tacho_absolute = vesc_status.tacho_absolute;
         state_msg.state.direction = vesc_status.direction;
     }
@@ -90,7 +150,7 @@ namespace vesc_driver {
         state_msg.state.current_input = vesc_status.current_input;
         state_msg.state.duty_cycle = vesc_status.duty_cycle;
         state_msg.state.tacho = vesc_status.tacho;
-        state_msg.state.fault_code = vesc_status.fault_code;
+        state_msg.state.fault_code = convertVescFaultCode(vesc_status.fault_code);
         state_msg.state.tacho_absolute = vesc_status.tacho_absolute;
         state_msg.state.direction = vesc_status.direction;
     }
