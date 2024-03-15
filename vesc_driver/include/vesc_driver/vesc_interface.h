@@ -85,7 +85,7 @@ namespace vesc_driver {
         uint32_t tacho;
         uint32_t tacho_absolute;
         bool direction;
-        int32_t fault_code;
+        uint8_t fault_code;
     };
 
 /**

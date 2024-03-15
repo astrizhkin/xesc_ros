@@ -192,7 +192,7 @@ public:
   double getInputPower() const;
   uint32_t getPosition() const;
   uint32_t getDisplacement() const;
-  int getFaultCode() const;
+  uint8_t getFaultCode() const;
 
 private:
   double readBuffer(const uint8_t, const uint8_t) const;

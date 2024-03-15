@@ -305,9 +305,9 @@ uint32_t VescPacketValues::getDisplacement() const
  * @brief Gets fault code
  * @return Fault code
  **/
-int VescPacketValues::getFaultCode() const
+uint8_t VescPacketValues::getFaultCode() const
 {
-  return static_cast<int32_t>(*(payload_end_.first + FAULT_CODE));
+  return static_cast<uint8_t>(*(payload_end_.first + FAULT_CODE));
 }
 
 /**
