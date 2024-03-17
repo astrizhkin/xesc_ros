@@ -191,6 +191,7 @@ namespace vesc_driver {
             std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
             if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_response).count() > 1000) {
                 last_response = now;
+                buffer.clear();
                 error_handler_("response timout. reconnecting.");
                 {
                     std::unique_lock<std::mutex> lk(status_mutex_);
