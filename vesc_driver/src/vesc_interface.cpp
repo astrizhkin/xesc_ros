@@ -181,7 +181,11 @@ namespace vesc_driver {
                     std::unique_lock<std::mutex> lk(status_mutex_);
                     status_.connection_state = VESC_CONNECTION_STATE::DISCONNECTED;
                 }
-                serial_.close();
+                try {
+                    serial_.close();
+                } catch (std::exception &e1) {
+                    error_handler_("error close serial" + std::string(e1.what()));
+                }
             }
             //check response timout
             std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
@@ -195,7 +199,11 @@ namespace vesc_driver {
             }
         }
 
-        serial_.close();
+        try {
+            serial_.close();
+        } catch (std::exception &e1) {
+            error_handler_("error close serial" + std::string(e1.what()));
+        }
 
         return nullptr;
     }
