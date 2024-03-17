@@ -59,7 +59,7 @@ namespace vesc_driver {
             case DISCONNECTED:
                 return xesc_msgs::XescState::XESC_CONNECTION_STATE_DISCONNECTED;
             case WAITING_FOR_FW:
-                return xesc_msgs::XescState::XESC_CONNECTION_STATE_WAITING_FOR_FW;
+                return xesc_msgs::XescState::XESC_CONNECTION_STATE_DISCONNECTED;
             case CONNECTED_INCOMPATIBLE_FW:
                 return xesc_msgs::XescState::XESC_CONNECTION_STATE_CONNECTED_INCOMPATIBLE_FW;
             case CONNECTED:

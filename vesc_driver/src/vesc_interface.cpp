@@ -56,21 +56,26 @@ namespace vesc_driver {
             nanosleep(&time, nullptr);
 
             std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-            VESC_CONNECTION_STATE state;
+            VESC_CONNECTION_STATE thread_safe_state;
             {
                 std::unique_lock<std::mutex> lk(status_mutex_);
-                state = status_.connection_state;
+                thread_safe_state = status_.connection_state;
             }
 
-            if (WAITING_FOR_FW == state) {
-                if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_request).count() > 1000) {
+            switch (thread_safe_state) {
+                case WAITING_FOR_FW:
+                    if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_request).count() > 1000) {
+                        last_request = now;
+                        requestFWVersion();
+                    }
+                    break;
+                case CONNECTED:
+                case CONNECTED_INCOMPATIBLE_FW:
                     last_request = now;
-                    requestFWVersion();
-                }
-                continue;
-            } else if(state == CONNECTED || state == CONNECTED_INCOMPATIBLE_FW) {
-                last_request = now;
-                requestState();
+                    requestState();
+                    break;
+                default:
+                    break;
             }
         }
         return nullptr;
@@ -108,6 +113,7 @@ namespace vesc_driver {
             }
 
             int bytes_needed = VescFrame::VESC_MIN_FRAME_SIZE;
+            //process bytes available
             if (!buffer.empty()) {
                 // search buffer for valid packet(s)
                 Buffer::iterator iter(buffer.begin());
@@ -180,12 +186,12 @@ namespace vesc_driver {
             //check response timout
             std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
             if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_response).count() > 1000) {
+                last_response = now;
                 error_handler_("response timout. reconnecting.");
                 {
                     std::unique_lock<std::mutex> lk(status_mutex_);
-                    status_.connection_state = VESC_CONNECTION_STATE::DISCONNECTED;
+                    status_.connection_state = VESC_CONNECTION_STATE::WAITING_FOR_FW;
                 }
-                serial_.close();
             }
         }
 
