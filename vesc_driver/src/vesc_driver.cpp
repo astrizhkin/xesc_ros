@@ -51,7 +51,7 @@ namespace vesc_driver {
 
 
     void VescDriver::vescErrorCallback(const std::string &error) {
-        ROS_ERROR("%s", error.c_str());
+        ROS_ERROR("[xesc_driver] %s", error.c_str());
     }
 
     uint16_t VescDriver::convertVescFaultCode(uint8_t vescFaultCode) {

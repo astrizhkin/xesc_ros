@@ -51,8 +51,6 @@ namespace vesc_driver {
     }
 
     void *VescInterface::update_thread() {
-        std::chrono::time_point<std::chrono::steady_clock> last_fw_request = std::chrono::steady_clock::now();
-
         while (update_thread_run_) {
             auto time = (const struct timespec) {0, state_request_millis * 1000000L};
             nanosleep(&time, nullptr);
@@ -65,13 +63,13 @@ namespace vesc_driver {
             }
 
             if (WAITING_FOR_FW == state) {
-                if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_fw_request).count() >
-                    1000) {
-                    last_fw_request = now;
+                if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_request).count() > 1000) {
+                    last_request = now;
                     requestFWVersion();
                 }
                 continue;
-            } else if(status_.connection_state == CONNECTED || status_.connection_state == CONNECTED_INCOMPATIBLE_FW) {
+            } else if(state == CONNECTED || state == CONNECTED_INCOMPATIBLE_FW) {
+                last_request = now;
                 requestState();
             }
         }
@@ -179,8 +177,17 @@ namespace vesc_driver {
                 }
                 serial_.close();
             }
+            //check response timout
+            std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+            if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_response).count() > 1000) {
+                error_handler_("response timout. reconnecting.");
+                {
+                    std::unique_lock<std::mutex> lk(status_mutex_);
+                    status_.connection_state = VESC_CONNECTION_STATE::DISCONNECTED;
+                }
+                serial_.close();
+            }
         }
-
 
         serial_.close();
 
@@ -188,12 +195,13 @@ namespace vesc_driver {
     }
 
     void VescInterface::handle_packet(VescPacketConstPtr packet) {
+        std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+        last_response = now;
         // Only update the state if connection state is connected
-        if ((status_.connection_state == CONNECTED || status_.connection_state == CONNECTED_INCOMPATIBLE_FW) &&
-            packet->getName() == "Values") {
+        if ((status_.connection_state == CONNECTED || status_.connection_state == CONNECTED_INCOMPATIBLE_FW)
+             && packet->getName() == "Values") {
             std::lock_guard<std::mutex> lk(status_mutex_);
-            std::shared_ptr<VescPacketValues const> values = std::dynamic_pointer_cast<VescPacketValues const>(
-                    packet);
+            std::shared_ptr<VescPacketValues const> values = std::dynamic_pointer_cast<VescPacketValues const>(packet);
 
             status_.seq++;
             status_.voltage_input = values->getInputVoltage();
@@ -216,8 +224,7 @@ namespace vesc_driver {
             status_cv_.notify_all();
         } else if (packet->getName() == "FWVersion") {
             std::lock_guard<std::mutex> lk(status_mutex_);
-            std::shared_ptr<VescPacketFWVersion const> fw_version =
-                    std::dynamic_pointer_cast<VescPacketFWVersion const>(packet);
+            std::shared_ptr<VescPacketFWVersion const> fw_version = std::dynamic_pointer_cast<VescPacketFWVersion const>(packet);
 
             status_.seq++;
             status_.fw_version_major = fw_version->fwMajor();
@@ -233,7 +240,6 @@ namespace vesc_driver {
             status_cv_.notify_all();
         }
     }
-
 
     bool VescInterface::send(const VescPacket &packet) {
         std::unique_lock<std::mutex> lk(serial_tx_mutex_);

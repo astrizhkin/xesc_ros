@@ -147,7 +147,6 @@ namespace vesc_driver {
 
         void handle_packet(VescPacketConstPtr packet);
 
-
         pthread_t rx_thread_handle_;
         pthread_t update_thread_handle_;
         bool rx_thread_run_;
@@ -164,6 +163,8 @@ namespace vesc_driver {
         struct VescStatusStruct status_;
 
         uint32_t state_request_millis;
+        std::chrono::time_point<std::chrono::steady_clock> last_request;
+        std::chrono::time_point<std::chrono::steady_clock> last_response;
     };
 
 }  // namespace xesc_2040_driver
