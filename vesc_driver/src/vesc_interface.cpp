@@ -64,7 +64,7 @@ namespace vesc_driver {
 
             switch (thread_safe_state) {
                 case WAITING_FOR_FW:
-                    if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_request).count() > 1000) {
+                    if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_request).count() > 250) {
                         last_request = now;
                         requestFWVersion();
                     }
@@ -211,6 +211,7 @@ namespace vesc_driver {
     void VescInterface::handle_packet(VescPacketConstPtr packet) {
         std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
         last_response = now;
+        error_handler_("got packet from VESC");
         // Only update the state if connection state is connected
         if ((status_.connection_state == CONNECTED || status_.connection_state == CONNECTED_INCOMPATIBLE_FW)
              && packet->getName() == "Values") {
