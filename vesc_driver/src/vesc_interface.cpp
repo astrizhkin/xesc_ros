@@ -192,7 +192,7 @@ namespace vesc_driver {
             if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_response).count() > 1000) {
                 last_response = now;
                 buffer.clear();
-                error_handler_("response timout. reconnecting.");
+                error_handler_("response timout. requesting FW ...");
                 {
                     std::unique_lock<std::mutex> lk(status_mutex_);
                     status_.connection_state = VESC_CONNECTION_STATE::WAITING_FOR_FW;
@@ -241,11 +241,13 @@ namespace vesc_driver {
             std::lock_guard<std::mutex> lk(status_mutex_);
             std::shared_ptr<VescPacketFWVersion const> fw_version = std::dynamic_pointer_cast<VescPacketFWVersion const>(packet);
 
-            error_handler_("got FW from VESC");
-
             status_.seq++;
             status_.fw_version_major = fw_version->fwMajor();
             status_.fw_version_minor = fw_version->fwMinor();
+
+            std::ostringstream ss;
+            ss << "got FW from VESC "<< (int)status_.fw_version_major << "." << (int)status_.fw_version_minor;
+            error_handler_(ss.str());
 
             // check for fully compatible FW here
             if (status_.fw_version_major == 5 && status_.fw_version_minor == 3) {
@@ -271,7 +273,7 @@ namespace vesc_driver {
     }
 
     void VescInterface::requestFWVersion() {
-        error_handler_("request VESC FW");
+        //error_handler_("request VESC FW");
         send(VescPacketRequestFWVersion());
     }
 
