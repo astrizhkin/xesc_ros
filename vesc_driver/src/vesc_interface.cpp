@@ -211,7 +211,6 @@ namespace vesc_driver {
     void VescInterface::handle_packet(VescPacketConstPtr packet) {
         std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
         last_response = now;
-        error_handler_("got packet from VESC");
         // Only update the state if connection state is connected
         if ((status_.connection_state == CONNECTED || status_.connection_state == CONNECTED_INCOMPATIBLE_FW)
              && packet->getName() == "Values") {
@@ -241,6 +240,8 @@ namespace vesc_driver {
             std::lock_guard<std::mutex> lk(status_mutex_);
             std::shared_ptr<VescPacketFWVersion const> fw_version = std::dynamic_pointer_cast<VescPacketFWVersion const>(packet);
 
+            error_handler_("got FW from VESC");
+
             status_.seq++;
             status_.fw_version_major = fw_version->fwMajor();
             status_.fw_version_minor = fw_version->fwMinor();
@@ -269,6 +270,7 @@ namespace vesc_driver {
     }
 
     void VescInterface::requestFWVersion() {
+        error_handler_("request VESC FW");
         send(VescPacketRequestFWVersion());
     }
 
