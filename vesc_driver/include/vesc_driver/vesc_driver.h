@@ -71,6 +71,7 @@ private:
   VescInterface vesc_;
   void vescErrorCallback(const std::string& error);
   uint16_t convertVescFaultCode(uint8_t vescFaultCode);
+  uint8_t  convertVescConnectionState(VESC_CONNECTION_STATE vescConnectionState);
   // limits on VESC commands
   struct CommandLimit
   {

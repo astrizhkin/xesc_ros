@@ -54,6 +54,21 @@ namespace vesc_driver {
         ROS_ERROR("[xesc_driver] %s", error.c_str());
     }
 
+    uint8_t VescDriver::convertVescConnectionState(VESC_CONNECTION_STATE vescConnectionState) {
+        switch (vescConnectionState) {
+            case DISCONNECTED:
+                return xesc_msgs::XescState::XESC_CONNECTION_STATE_DISCONNECTED;
+            case WAITING_FOR_FW:
+                return xesc_msgs::XescState::XESC_CONNECTION_STATE_WAITING_FOR_FW;
+            case CONNECTED_INCOMPATIBLE_FW:
+                return xesc_msgs::XescState::XESC_CONNECTION_STATE_CONNECTED_INCOMPATIBLE_FW;
+            case CONNECTED:
+                return xesc_msgs::XescState::XESC_CONNECTION_STATE_CONNECTED;
+            default:
+                return xesc_msgs::XescState::XESC_CONNECTION_STATE_DISCONNECTED;
+        }
+    }
+
     uint16_t VescDriver::convertVescFaultCode(uint8_t vescFaultCode) {
         switch (vescFaultCode) {
 	        case FAULT_CODE_NONE:
@@ -123,7 +138,7 @@ namespace vesc_driver {
         vesc_.get_status(&vesc_status);
 
         state_msg.header.stamp = ros::Time::now();
-        state_msg.state.connection_state = vesc_status.connection_state;
+        state_msg.state.connection_state = convertVescConnectionState(vesc_status.connection_state);
         state_msg.state.fw_major = vesc_status.fw_version_major;
         state_msg.state.fw_minor = vesc_status.fw_version_minor;
         state_msg.state.voltage_input = vesc_status.voltage_input;
@@ -141,7 +156,7 @@ namespace vesc_driver {
         vesc_.wait_for_status(&vesc_status);
 
         state_msg.header.stamp = ros::Time::now();
-        state_msg.state.connection_state = vesc_status.connection_state;
+        state_msg.state.connection_state = convertVescConnectionState(vesc_status.connection_state);
         state_msg.state.fw_major = vesc_status.fw_version_major;
         state_msg.state.fw_minor = vesc_status.fw_version_minor;
         state_msg.state.voltage_input = vesc_status.voltage_input;
